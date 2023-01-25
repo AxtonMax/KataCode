@@ -1,6 +1,10 @@
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+
+import java.util.HashMap;
+import java.util.Map;
+
 import org.junit.runners.JUnit4;
 
 
@@ -8,151 +12,223 @@ public class SolutionTest {
     
     @Test
     public void fixedTests() {
-        assertEquals(1 , parseInt("one"));
-        assertEquals(21 , parseInt("twenty-one"));
-        assertEquals(246 , parseInt("two hundred forty-six"));
-        assertEquals(94333 , parseInt("ninety-four thousand three hundred thirty-three"));
-        //assertEquals(498269 , parseInt("four hundred and ninety-eight thousand two hundred and sixty-nine"));
+    	assertEquals(498269 , parseIntPro("four hundred ninety-eight thousand two hundred sixty-nine"));
+    	assertEquals(100000 , parseIntPro("one hundred thousand"));
+        assertEquals(21 , parseIntPro("twenty-one"));
+        assertEquals(246 , parseIntPro("two hundred forty-six"));
+        assertEquals(94333 , parseIntPro("ninety-four thousand three hundred thirty-three"));
+        
     }
     
     public static int parseInt(String numStr) {
-    	 int total = 0;
-         int holder = 0;
-         String[] spliter = new String[2];
-       System.out.println("Starter "+numStr);
-         //String[] number = numStr.toLowerCase().split("[ -]");
-         String[] number = numStr.toLowerCase().split("[ ]");
-         
-     	//System.out.println("Starter "+numStr);
-         for (int i = 0; i < number.length; i++) {
- 		//System.out.println(total);
-        	 if (number[i].contains("-")) {
-        		 spliter = number[i].split("-");
-        		 //total += Integer.valueOf(String.valueOf(singles(spliter[0]))+String.valueOf(singles(spliter[1])));
-        		 System.out.println("HERE "+(singles(spliter[0].substring(0, (spliter[0].length()-2))) * 10)+singles(spliter[1]));
-        		 holder= (singles(spliter[0].substring(0, (spliter[0].length()-2))) * 10)+singles(spliter[1]);
-        		 total += holder;
-        	 }
-        	 else if (!number[i].contains("hundred") && !number[i].contains("thousand") && !number[i].contains("million") && !number[i].contains("and")) {
-         	holder = singles(number[i]);
-         	total += holder;
-        	 }
-        	 
-        	 
-         	if(number[i].contains("hundred") || number[i].contains("thousand") || number[i].contains("million")){
-         		total -= holder;
-         		total += alter(number[i], number[i-1], holder);
-         	}
-     	
-     		if(number[i].contains("ty")){
-     			total += singles(number[i].substring(0, (number[i].length()-2))) * 10;
-     		}
-     		
-     		if(number[i].contains("teen")) {
-     			total += singles(number[i].substring(0, (number[i].length()-4))) + 10;
-     		}
-     	
-     	
-         } 
-         System.out.println(total);
-         return total;
-     }
+    	StringBuilder Tally = new StringBuilder();
+    	StringBuilder Beginning = new StringBuilder();
+    	 
+    	Beginning.append(numStr.toLowerCase().replaceAll(" and", ""));
+    	if (Beginning.toString().contains("million")) {
+    		Tally.append("1000000");
+    	}
+    	
+    	else if (Beginning.toString().contains("thousand")) {
+    		Tally.append(thousandare(Beginning.toString()));
+    	}
 
- 	private static int singles(String substring) {
- 		int singNum =0;
- 		switch (substring) {
- 		case "one":
- 			singNum = 1;
+    	else if (Beginning.toString().contains("hundred")) {
+    		Tally.append(hundredare(Beginning.toString()));
+    		if (Beginning.toString().contains("thousand")) {
+        		Tally.append(thousandare(Beginning.toString()));
+        	}
+    	}
+    	else {
+    		
+    		Tally.append(singledigit(Beginning.toString()));
+    		if (Beginning.toString().contains("hundred")) {
+        		Tally.append(hundredare(Beginning.toString()));
+        	if (Beginning.toString().contains("thousand")) {
+            		Tally.append(thousandare(Beginning.toString()));
+            	}
+        	}
+    		}
+
+    	System.out.println("final: "+Tally.toString());
+    	return Integer.valueOf(Tally.toString());
+    }
+    
+    private static String thousandare (String huns1) {
+    	int holder1 = 0;
+    	StringBuilder Tally1 = new StringBuilder();
+    	String[] THOU = huns1.toString().split("thousand");
+		for (int i = 0; i < THOU.length; i++) {
+			
+			if(i == 0){
+				if (THOU[i].contains("hundred")) {Tally1.append(hundredare(THOU[i]));}
+				else {Tally1.append(singledigit(THOU[i]));}
+				Tally1.append("000");
+				}
+			else if (!THOU[i].strip().isEmpty()){
+				if (THOU[i].contains("hundred")) {holder1 = Integer.valueOf(Tally1.toString())+Integer.valueOf(hundredare(THOU[i]));}
+				else{holder1 = Integer.valueOf(Tally1.toString())+Integer.valueOf(singledigit(THOU[i].strip()));}
+				 Tally1.setLength(0);
+				 Tally1.append(String.valueOf(holder1));
+				 holder1 = 0;
+				}
+			
+		}
+    	
+    	return Tally1.toString();
+    }
+    
+    private static String hundredare (String huns) {
+    	int holder2 = 0;
+    	StringBuilder Tally2 = new StringBuilder();
+    	String[] HUND = huns.split("hundred");
+		for (int j = 0; j < HUND.length; j++) {
+			if(j == 0){
+				
+				Tally2.append(singledigit(HUND[j].strip()));
+				Tally2.append("00");
+				
+				}
+			else if (!HUND[j].strip().isEmpty()){
+				 holder2 = Integer.valueOf(Tally2.toString())+Integer.valueOf(singledigit(HUND[j].strip()));
+				 Tally2.setLength(0);
+				 Tally2.append(String.valueOf(holder2));
+				 holder2 = 0;
+			}
+		}
+    	
+    	return Tally2.toString();
+    }
+    
+    private static String singledigit(String stringer) {
+ 		StringBuilder sb = new StringBuilder();
+    	int counter = 1;
+    	String[] singNum = new String[2];
+    	if (stringer.contains("-")) {
+    		counter = 2;
+    		singNum = stringer.split("-");
+    		
+    	}
+    	else if (!stringer.contains("-")) {
+    		counter = 1;
+    		singNum[0] = stringer.substring(0, 2);
+    		
+    		if(stringer.charAt(stringer.length()-1)=='y') {
+    			singNum[1] = "ze";
+    			counter = 2;
+    		}
+    		else if (stringer.contains("teen")) {
+    			singNum[0] = "on";
+    			singNum[1] = stringer.substring(0, 2);
+    			counter = 2;
+    			}
+    		else if (stringer.contains("twelve")) {
+    			singNum[0] = "tv";
+    			counter = 1;
+    			}
+    	}
+    	
+    	for (int b=0; b<counter; b++) {
+    	String value = null;
+ 		switch (singNum[b].substring(0, 2)) {
+ 		case "ze":
+ 			value = "0";
  			break;
- 		case "two":
- 			singNum = 2;
+ 		case "on":
+ 			value = "1";
  			break;
- 		case "twen":
- 			singNum = 2;
+ 		case "tw":
+ 			value = "2";
  			break;
- 		case "three":
- 			singNum = 3;
+ 		case "th":
+ 			value = "3";
  			break;
- 		case "thir":
- 			singNum = 3;
+ 		case "fo":
+ 			value = "4";
  			break;
- 		case "four":
- 			singNum = 4;
+ 		case "fi":
+ 			value = "5";
  			break;
- 		case "for":
- 			singNum = 4;
+ 		case "si":
+ 			value = "6";
  			break;
- 		case "five":
- 			singNum = 5;
+ 		case "se":
+ 			value = "7";
  			break;
- 		case "fif":
- 			singNum = 5;
+ 		case "ei":
+ 			value = "8";
  			break;
- 		case "six":
- 			singNum = 6;
- 			
+ 		case "ni":
+ 			value = "9";
  			break;
- 		case "seven":
- 			singNum = 7;
- 			
- 			break;
- 		case "eight":
- 			singNum = 8;
- 			break;
-     case "eigh":
- 			singNum = 8;
- 			break;
- 		case "nine":
- 			singNum = 9;
- 			
- 			break;
- 		case "ten":
- 			singNum = 10;
- 			break;
- 		case "eleven":
- 			singNum = 11;
- 			break;
- 		case "twelve":
- 			singNum = 12;
- 			break;
+ 		case "te":
+ 			return "10";
+ 		case "el":
+ 			return "11";
+ 		case "tv":
+ 			return "12";
  		}
- 		return singNum;
- 	}
 
- 	private static int alter(String string, String String2, int holder2) {
- 		int previous = 0;
- 		int addup = 0;
- 		switch (string) {
- 		case "hundred":
- 			//System.out.println("why "+holder2);
- 			//total -= singles(String2);
- 			System.out.println("This is previous "+holder2);
- 			//total += Integer.valueOf(String.valueOf(previous)+"00");
- 			//total += singles(String2)*100;
- 			addup = holder2 * 100;
- 			System.out.println("and this is after "+(addup));
- 			break;
- 		case "thousand":
- 			//total +=1000;
- 			//total -= singles(String2);
- 			
- 			//total += Integer.valueOf(String.valueOf(previous)+"000");
- 			//total += singles(String2)*1000;
- 			
- 			addup = holder2 * 1000;
- 			break;
- 		case "million":
- 			//total +=1000000;
- 			//total -= singles(String2);
- 			//total += Integer.valueOf(String.valueOf(previous)+"000000");
- 			//total += singles(String2)*1000000;
- 			addup = holder2 * 1000000;
- 			break;    			
-
- 		}
- 		
- 		return addup;
- 		
- 	}
+ 		sb.append(value);
+    	}
+    	
+ 		return sb.toString();  	
+    } 	
+    
+    
+    public static int parseIntPro(String numStr) {
+        String[] numArray = numStr.split("[ |-]");
+        int number = 0;
+        Map<String, Integer> map = new HashMap<String, Integer>();
+        map.put("zero", 0);
+        map.put("one", 1);
+        map.put("two", 2);
+        map.put("three", 3);
+        map.put("four", 4);
+        map.put("five", 5);
+        map.put("six", 6);
+        map.put("seven", 7);
+        map.put("eight", 8);
+        map.put("nine", 9);
+        map.put("ten", 10);
+        map.put("eleven", 11);
+        map.put("twelve", 12);
+        map.put("thirteen", 13);
+        map.put("fourteen", 14);
+        map.put("fifteen", 15);
+        map.put("sixteen", 16);
+        map.put("seventeen", 17);
+        map.put("eighteen", 18);
+        map.put("nineteen", 19);
+        map.put("twenty", 20);
+        map.put("thirty", 30);
+        map.put("forty", 40);
+        map.put("fifty", 50);
+        map.put("sixty", 60);
+        map.put("seventy", 70);
+        map.put("eighty", 80);
+        map.put("ninety", 90);
+        map.put("hundred", 100);
+        map.put("thousand", 1000);
+        map.put("million", 1000000);
+        
+        for (int i = 0; i < numArray.length; i++) {
+            for (String key : map.keySet()) {
+                if (numArray[i].toLowerCase().equals(key)) {
+                    if (map.get(key) == 100) {
+                        int temp = number % 100;
+                        number -= temp;
+                        number += temp * (map.get(key));
+                    }
+                    else if (map.get(key) > 100)
+                        number *= (map.get(key));
+                    else
+                        number += map.get(key);
+                      break;
+                }
+            }
+        }
+        return number;
+    }
     
 }
